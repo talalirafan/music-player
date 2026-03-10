@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spotify</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<nav>
+<button id="menuBtn">☰</button>
+<div style="display:flex; align-items:center; gap:15px;">
+<img src="https://img.icons8.com/fluency/48/000000/spotify.png" alt="Spotify Logo" style="width:40px; height:40px;">
+<h2>Spotify</h2>
+</div>
+<span class="navlink" style="cursor:pointer; transition:all 0.3s ease;" onmouseover="this.style.color='#00d4ff'" onmouseout="this.style.color='white'">Home</span>
+<span class="navlink" style="cursor:pointer; transition:all 0.3s ease;" onmouseover="this.style.color='#00d4ff'" onmouseout="this.style.color='white'">Library</span>
+<span id="searchBtn" style="cursor:pointer; transition:all 0.3s ease; font-size:20px;">🔍</span>
+
+</nav>
+
+<div class="container">
+
+<div class="left">
+
+<h1 style="background:linear-gradient(135deg,#00d4ff,#0099cc); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:36px; margin-bottom:30px; text-shadow:0 0 30px rgba(0,212,255,0.5);"></h1>
+
+<input id="search" placeholder="🔍 Search song...">
+
+<div id="songList"></div>
+
+</div>
+
+<div class="right">
+
+<img id="album" class="album" alt="Album Cover" src="">
+
+</img>
+
+</div>
+
+<div class="bottom">
+
+<input type="range" id="progress" value="0">
+
+<div class="controls">
+
+<button id="shuffle">🔀</button>
+<button id="prev">⏮</button>
+<button id="play">▶</button>
+<button id="next">⏭</button>
+<button id="repeat">🔁</button>
+
+<div class="equalizer">
+
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+
+</div>
+
+<input type="range" id="volume" min="0" max="1" step="0.01">
+
+</div>
+
+<div id="songName" style="font-size:18px; font-weight:600; margin-top:10px; color:#00d4ff; text-shadow:0 0 10px rgba(0,212,255,0.5);">
+Ready <span id="time" style="margin-left:15px;font-size:14px;color:#00d4ff;"></span>
+</div>
+
+</div>
+
+<script>
+
+/* SONG DATA */
+
+// small inline SVG used as a default cover so we don't hit the network
+const defaultCover = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="50" height="50" fill="%23ff6b6b"/><text x="25" y="30" font-size="20" text-anchor="middle" fill="%23fff">♫</text></svg>';
+
+const songs=[
+
+{
+name:"Tar o Tab",
+file:"songs/m1.mp3",
+cover:"noor kahan 2.jpeg",
+artist:"Noor khan",
+duration:"3:45"
+},
+
+{
+name:"Sharabi Kadahan Chamm-Balochi Ghazal.mp3",
+file:"noor mohammad nooral-Sharabi Kadahan Chamm-Balochi Ghazal.mp3",
+cover:"noor muhmmad.jpeg",
+artist:"noor mohammad nooral",
+duration:"4:12"
+},
+
+
+{
+name:"Invincible",
+file:"songs/2.mp3",
+cover:"2.jpg",
+artist:"DEAF KEV",
+duration:"3:58"
+},
+
+{
+name:"Sky High",
+file:"songs/3.mp3",
+cover:"3.jpg",
+artist:"Elektronomia",
+duration:"4:25"
+},
+
+{
+name:"Warriors",
+file:"songs/4.mp3",
+cover:"4.jpg",
+artist:"Imagine Dragons",
+duration:"2:50"
+},
+
+{
+name:"Believer",
+file:"songs/5.mp3",
+cover:"5.jpg",
+artist:"Imagine Dragons",
+duration:"3:24"
+},
+
+{
+name:"Thunder",
+file:"songs/6.mp3",
+cover:"6.jpg",
+artist:"Imagine Dragons",
+duration:"3:24"
+},
+
+{
+name:"Demons",
+file:"songs/7.mp3",
+cover:"7.jpg",
+artist:"Imagine Dragons",
+duration:"2:57"
+},
+
+{
+name:"Radioactive",
+file:"songs/8.mp3",
+cover:"8.jpg",
+artist:"Imagine Dragons",
+duration:"3:06"
+},
+
+{
+name:"Whatever It Takes",
+file:"songs/9.mp3",
+cover:"9.jpg",
+artist:"Imagine Dragons",
+duration:"3:21"
+},
+
+{
+name:"Natural",
+file:"songs/10.mp3",
+cover:"10.jpg",
+artist:"Imagine Dragons",
+duration:"3:09"
+},
+
+{
+name:"Shape of You",
+file:"songs/placeholder1.mp3",
+cover: defaultCover,
+artist:"Ed Sheeran",
+duration:"3:53"
+},
+
+{
+name:"Blinding Lights",
+file:"songs/placeholder2.mp3",
+cover: defaultCover,
+artist:"The Weeknd",
+duration:"3:20"
+},
+
+{
+name:"Watermelon Sugar",
+file:"songs/placeholder3.mp3",
+cover: defaultCover,
+artist:"Harry Styles",
+duration:"2:54"
+},
+
+{
+name:"Levitating",
+file:"songs/placeholder4.mp3",
+cover: defaultCover,
+artist:"Dua Lipa",
+duration:"3:23"
+},
+
+{
+name:"Good 4 U",
+file:"songs/placeholder5.mp3",
+cover: defaultCover,
+artist:"Olivia Rodrigo",
+duration:"2:58"
+},
+
+{
+name:"Stay",
+file:"songs/placeholder6.mp3",
+cover: defaultCover,
+artist:"The Kid Laroi & Justin Bieber",
+duration:"2:21"
+},
+
+{
+name:"Peaches",
+file:"songs/placeholder7.mp3",
+cover: defaultCover,
+artist:"Justin Bieber ft. Daniel Caesar & Giveon",
+duration:"3:18"
+},
+
+{
+name:"Montero (Call Me By Your Name)",
+file:"songs/placeholder8.mp3",
+cover: defaultCover,
+artist:"Lil Nas X",
+duration:"2:30"
+},
+
+{
+name:"Permission to Dance",
+file:"songs/placeholder9.mp3",
+cover: defaultCover,
+artist:"BTS",
+duration:"3:07"
+},
+
+{
+name:"Butter",
+file:"songs/placeholder10.mp3",
+cover: defaultCover,
+artist:"BTS",
+duration:"2:44"
+}
+
+];
+
+
+/* VARIABLES */
+
+let index=0;
+
+let audio=new Audio(songs[0].file);
+
+const songList=document.getElementById("songList");
+
+const playBtn=document.getElementById("play");
+
+const prevBtn=document.getElementById("prev");
+
+const nextBtn=document.getElementById("next");
+
+const progress=document.getElementById("progress");
+
+const volume=document.getElementById("volume");
+
+const songName=document.getElementById("songName");
+
+const search=document.getElementById("search");
+
+const album=document.getElementById("album");
+
+const bars=document.querySelectorAll(".bar");
+
+const nav=document.querySelector('nav');
+const menuBtn=document.getElementById('menuBtn');
+const searchBtn=document.getElementById('searchBtn');
+const shuffleBtn=document.getElementById("shuffle");
+const repeatBtn=document.getElementById("repeat");
+const timeDisplay=document.getElementById("time");
+let isShuffle=false;
+let isRepeat=false;
+
+menuBtn.onclick = ()=> nav.classList.toggle('open');
+searchBtn?.addEventListener('click',()=>document.body.classList.toggle('search-active'));
+
+function formatTime(sec){
+  const m=Math.floor(sec/60);
+  const s=Math.floor(sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+// note: 8D audio/panning code removed for simplicity
+
+function formatTime(sec){
+  const m=Math.floor(sec/60);
+  const s=Math.floor(sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+
+/* BUILD SONG LIST */
+
+function buildList(list=songs){
+
+songList.innerHTML="";
+
+list.forEach((song,i)=>{
+
+let div=document.createElement("div");
+
+div.className="songItem";
+
+if(song.name === "Add Your Song Here"){
+div.classList.add("empty-song");
+}
+
+div.innerHTML=`
+
+<div class="songInfo">
+
+<img src="${song.cover}" onerror="this.src=defaultCover">
+<div class="songDetails">
+<div class="songTitle">${song.name}</div>
+<div class="songArtist">${song.artist || 'Unknown Artist'}</div>
+</div>
+
+</div>
+
+<div style="display:flex; align-items:center; gap:10px;">
+<span style="color:#ff6b6b; font-size:14px;">${song.duration || '0:00'}</span>
+<span style="color:#ff6b6b; font-size:18px;">▶</span>
+</div>
+
+`;
+
+div.onclick=()=>playSong(i);
+
+songList.appendChild(div);
+
+});
+
+}
+
+buildList();
+
+
+/* PLAY SONG */
+
+function playSong(i){
+
+if(songs[i].name === "Add Your Song Here"){
+alert("📝 To add your own songs:\n\n1. Add your MP3 files to the 'songs/' folder\n2. Add cover images to the 'covers/' folder\n3. Edit the songs array in the JavaScript code\n4. Replace the placeholder data with your song details\n\nExample:\n{\n  name: \"Your Song Name\",\n  file: \"songs/your-song.mp3\",\n  cover: \"covers/your-cover.jpg\",\n  artist: \"Artist Name\",\n  duration: \"3:45\"\n}\n");
+return;
+}
+
+index=i;
+
+audio.src=songs[i].file;
+
+audio.play();
+
+playBtn.textContent="⏸";
+
+songName.textContent=`${songs[i].name} - ${songs[i].artist || 'Unknown Artist'}`;
+
+album.src=songs[i].cover;
+album.classList.add('playing');
+
+bars.forEach(b=>b.style.animationPlayState="running");
+
+document.querySelectorAll('.songItem').forEach((el,idx)=>el.classList.toggle('active', idx===i));
+
+}
+
+
+/* PLAY PAUSE */
+
+playBtn.onclick=()=>{
+
+if(audio.paused){
+
+audio.play();
+
+playBtn.textContent="⏸";
+
+bars.forEach(b=>b.style.animationPlayState="running");
+album.classList.add('playing');
+
+}
+
+else{
+
+audio.pause();
+
+playBtn.textContent="▶";
+
+bars.forEach(b=>b.style.animationPlayState="paused");
+album.classList.remove('playing');
+
+}
+
+};
+
+
+/* NEXT */
+
+nextBtn.onclick=()=>{
+  if(isShuffle){
+    index=Math.floor(Math.random()*songs.length);
+  } else {
+    index=(index+1)%songs.length;
+  }
+  playSong(index);
+};
+
+shuffleBtn.onclick=()=>{
+  isShuffle=!isShuffle;
+  shuffleBtn.style.color=isShuffle?'#00d4ff':'white';
+  shuffleBtn.style.textShadow=isShuffle?'0 0 10px rgba(0,212,255,0.6)':'none';
+};
+
+repeatBtn.onclick=()=>{
+  isRepeat=!isRepeat;
+  repeatBtn.style.color=isRepeat?'#00d4ff':'white';
+  repeatBtn.style.textShadow=isRepeat?'0 0 10px rgba(0,212,255,0.6)':'none';
+};
+
+
+
+
+/* PREV */
+
+prevBtn.onclick=()=>{
+  if(isShuffle){
+    index=Math.floor(Math.random()*songs.length);
+  } else {
+    index=(index-1+songs.length)%songs.length;
+  }
+  playSong(index);
+};
+
+
+/* PROGRESS */
+
+audio.ontimeupdate=()=>{
+  if(audio.duration){
+    progress.value=(audio.currentTime/audio.duration)*100;
+    timeDisplay.textContent=`${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+  }
+};
+
+
+progress.oninput=()=>{
+
+audio.currentTime=(progress.value*audio.duration)/100;
+
+};
+
+
+/* VOLUME */
+
+volume.oninput=()=>{
+
+audio.volume=volume.value;
+
+};
+
+
+/* AUTO NEXT */
+
+audio.onended=()=>{
+  if(isRepeat){
+    audio.currentTime=0;
+    audio.play();
+  } else if(isShuffle){
+    index=Math.floor(Math.random()*songs.length);
+    playSong(index);
+  } else {
+    nextBtn.click();
+  }
+};
+
+
+/* SEARCH */
+
+search.oninput=()=>{
+
+let value=search.value.toLowerCase();
+
+let filtered=songs.filter(song=>
+
+song.name.toLowerCase().includes(value)
+
+);
+
+buildList(filtered);
+
+};
+
+</script>
+
+</body>
+</html>
